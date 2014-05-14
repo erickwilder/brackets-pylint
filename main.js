@@ -24,21 +24,28 @@ define(function (require, exports, module) {
         };
     
     function parseResult(data) {
+        console.log('Will parse data...', data);
         /*jslint regexp: true*/
-        var lines = _.filter(data, function (line) {
-            return (/\b\d+:\d+:[a-z]:.+$/).test(line);
+        var lines = _.filter(data || [], function (line) {
+            return (/\b\d+:\d+:[a-z]+:.+$/).test(line);
         });
         /*jslint regexp: false*/
         
-        return _.map(lines, function (line) {
-            // pylint format = {line}:{column}:{category}:{msg}
-            var pieces = line.split(':');
-            return {
-                pos: {line: _.parseInt(pieces[0]), ch: _.parseInt(pieces[1])},
-                type: PylintTypes[pieces[2]],
-                message: pieces[3]
-            };
-        });
+        console.log('Filtered lines', lines);
+        
+        var errors = _.map(lines || [], function (line) {
+                // pylint format = {line}:{column}:{category}:{msg}
+                var pieces = line.split(':');
+                return {
+                    pos: {line: _.parseInt(pieces[0]), ch: _.parseInt(pieces[1])},
+                    type: PylintTypes[pieces[2]],
+                    message: pieces[3]
+                };
+            });
+        if (errors.length) {
+            return {errors: errors};
+        }
+        return null;
     }
     
     function handleLinterAsync(text, filePath) {
@@ -53,7 +60,7 @@ define(function (require, exports, module) {
     
     // Register a new async linter to `python` language
     CodeInspection.register('python', {
-        name: 'BracketsPylint',
+        name: 'Pylint',
         scanFileAsync: handleLinterAsync
     });
 });

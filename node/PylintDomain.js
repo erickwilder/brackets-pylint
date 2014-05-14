@@ -3,16 +3,22 @@
 (function () {
     "use strict";
     
+    var spawn = require('child_process').spawn;
+    
     function runCommand(config, callback) {
         var output = '', pylint,
-            args = ['--msg-template="{line}"{column}:{category}:{msg}"',
+            args = ['--msg-template="{line}:{column}:{category}:{msg}"',
                     '--report=n', '--persistent=n', '--rcfile=' + config.rcfilePath,
                    config.filePath];
         try {
+            console.log('Will run "%s" with args = %s', config.pylintPath, JSON.stringify(args));
             pylint = spawn(config.pylintPath, args);
         } catch (err) {
-            callback(err);
+            console.error('Pylint error = %s', err);
+            return callback(err);
         }
+        
+        console.log('Setup pylint process handling...');
         
         pylint.stderr.on('data', function (data) {
             output += data.toString();
@@ -23,8 +29,10 @@
         });
         
         pylint.on('exit', function (code, signal) {
-            callback(null, output.split(/\n\r?/));
-            output = null;
+            console.log('Lint process finished. Code = %s', code);
+            var result = output.split(/\n\r?/);
+            console.log('Lint results: ', result);
+            return callback(null, result);
         });
     }
     
