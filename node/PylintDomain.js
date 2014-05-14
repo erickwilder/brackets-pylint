@@ -1,49 +1,15 @@
 /*jslint vars: true, nomen: true, indent: 4*/
-/*global require, console, exports, brackets */
+/*global require, console, exports*/
 (function () {
     "use strict";
     
-    var _ = require('thirdparty/lodash'),
-        CodeInspection = brackets.getModule('language/CodeInspection'),
-        ProjectManager = brackets.getModule('project/ProjectManager'),
-        spawn = require('child_process').spawn,
-        types = {
-            refactor: CodeInspection.Type.META,
-            convention: CodeInspection.Type.META,
-            error: CodeInspection.Type.ERROR,
-            fatal: CodeInspection.Type.ERROR,
-            warning: CodeInspection.Type.WARNING
-        };
-    
-    var rcfilePath = ProjectManager.getProjectRoot().fullPath + 'pylintrc';
-    
-    /*jslint regexp: true*/
-    function parseOutput(data) {
-        console.log('Pylint data = ' + data);
-        var lines = _.filter(data.split(/\n\r?/), function (line) {
-            return (/\b\d+:\d+:[a-z]+:.+$/).test(line);
-        });
-        
-        var result = _.map(lines, function (line) {
-            var pieces = line.split(':');
-            return {
-                line: _.parseInt(pieces[0]),
-                col: _.parseInt(pieces[1]),
-                cat: String(pieces[2]).toLowerCase(),
-                msg: pieces[3]
-            };
-        });
-        return result;
-    }
-    /*jslint regexp: false*/
-    
-    function runCommand(filePath, callback) {
+    function runCommand(config, callback) {
         var output = '', pylint,
             args = ['--msg-template="{line}"{column}:{category}:{msg}"',
-                    '--report=n', '--persistent=n', '--rcfile=' + rcfilePath,
-                   filePath];
+                    '--report=n', '--persistent=n', '--rcfile=' + config.rcfilePath,
+                   config.filePath];
         try {
-            pylint = spawn('/usr/local/bin/pylint', args);
+            pylint = spawn(config.pylintPath, args);
         } catch (err) {
             callback(err);
         }
@@ -57,7 +23,7 @@
         });
         
         pylint.on('exit', function (code, signal) {
-            callback(null, parseOutput(output));
+            callback(null, output.split(/\n\r?/));
             output = null;
         });
     }
