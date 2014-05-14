@@ -1,0 +1,14 @@
+{
+    "name": "erickwilder.brackets-pylint",
+    "title": "Brackets Pylint",
+    "description": "Simplest pylint support to Brackets",
+    "homepage": "https://github.com/erickwilder/brackets-pylint",
+    "version": "0.0.1",
+    "keywords":["lint","linting","linter","pylint", "python"],
+    "categories":"linting",
+    "author": "Erick Wilder <erickwilder@gmail.com> (http://erickwilder.com)",
+    "license": "MIT",
+    "engines": {
+        "brackets": ">=0.38.0"
+    }
+}
